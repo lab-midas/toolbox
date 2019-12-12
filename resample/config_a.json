@@ -1,0 +1,11 @@
+{
+    "pattern_img": "**/*pet*",
+    "pattern_ref": "**/*ct*rs*",
+    "interpolator": "BSpline",
+    "DefaultValue": 0.0,
+
+    "SetTargetSize": false,
+    "SetTargetSpacing": false,
+    "SetTargetOrigin": false,
+    "SetTargetDirection": false
+}
