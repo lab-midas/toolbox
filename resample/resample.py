@@ -20,7 +20,6 @@ def load_dcm_data(dirpath):
 
 
 def resample_img(img, config):
-
     # read parameters from config
     target_size = img.GetSize()
     if config['SetTargetSize']:
@@ -90,24 +89,9 @@ def resample_img_to_ref(img, ref_img, config):
     return rs_img
 
 
-def main():
-    print('Resample medical image date ')
-    filepath = '/home/raheppt1/data/sample.nii'
-    filepath_config = "resample/config.json"
-
-    # parser = argparse.ArgumentParser(description='Process some integers.')
-    # parser.add_argument('integers', metavar='N', type=int, nargs='+',
-    #                     help='an integer for the accumulator')
-    # parser.add_argument('--sum', dest='accumulate', action='store_const',
-    #                     const=sum, default=max,
-    #                     help='sum the integers (default: find the max)')
-    #args = parser.parse_args()
-    #args.accumulate(args.integers)
-
-    work_dir = Path('/home/raheppt1/data/')
-
-
-    filepath_config = "resample/config_a.json"
+def align_and_resample_dir():
+    work_dir = Path('/mnt/data/projects/PET/BClesions/normal')
+    filepath_config = "/home/raheppt1/projects/toolbox/resample/config_a.json"
     with open(filepath_config, "r") as config_file:
         config = json.load(config_file)
 
@@ -125,11 +109,14 @@ def main():
             outpath = file[0].parent.joinpath(file[0].name.replace('.nii', '_rs.nii'))
             writer.SetFileName(str(outpath))
             writer.Execute(rs_img)
-    return
 
 
+def resample_dir():
+    work_dir = Path('/mnt/data/projects/PET/BClesions/normal')
+    filepath_config = "config.json"
     with open(filepath_config, "r") as config_file:
         config = json.load(config_file)
+        files = list(work_dir.glob(config['pattern_img']))
         print(config['interpolator'])
         for file in files:
             print(file)
@@ -139,6 +126,25 @@ def main():
             outpath = file.parent.joinpath(file.name.replace('.nii', '_rs.nii'))
             writer.SetFileName(str(outpath))
             writer.Execute(rs_img)
+
+
+def main():
+    print('Resample medical image date ')
+    filepath = '/home/raheppt1/data/sample.nii'
+    filepath_config = "resample/config.json"
+
+    # parser = argparse.ArgumentParser(description='Process some integers.')
+    # parser.add_argument('integers', metavar='N', type=int, nargs='+',
+    #                     help='an integer for the accumulator')
+    # parser.add_argument('--sum', dest='accumulate', action='store_const',
+    #                     const=sum, default=max,
+    #                     help='sum the integers (default: find the max)')
+    #args = parser.parse_args()
+    #args.accumulate(args.integers)
+
+    work_dir = Path('/mnt/data/')
+
+    resample_dir()
 
 
 if __name__ == '__main__':
