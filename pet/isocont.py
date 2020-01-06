@@ -5,6 +5,7 @@ import nibabel as ni
 
 import matplotlib.pyplot as plt
 
+
 def main():
 
     parser = argparse.ArgumentParser()

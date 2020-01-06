@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@127.0.0.1:2022">
+  <component name="PublishConfigData" autoUpload="Always" serverName="Copy of project-level server 'VmGpu_DockerDev'">
     <serverData>
-      <paths name="ubuntu@127.0.0.1:2020">
+      <paths name="Copy of project-level server 'VmGpu_DockerDev'">
         <serverdata>
           <mappings>
-            <mapping deploy="/mnt/home/raheppt1/projects/toolbox" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/mnt/home/raheppt1/projects/toolbox" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="ubuntu@127.0.0.1:2022">
+      <paths name="VmGpu_DockerDev">
         <serverdata>
           <mappings>
             <mapping deploy="/mnt/home/raheppt1/projects/toolbox" local="$PROJECT_DIR$" web="/" />
