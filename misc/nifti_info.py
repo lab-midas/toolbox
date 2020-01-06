@@ -3,34 +3,40 @@ import argparse
 from pathlib import Path
 
 def main():
-    print("NIFI-image information")
+    """ Shows basic information for nifti files.
+    (Size, Spacing, Origin, Direction)
 
+    Returns:
+
+    """
+
+    # Parse arguments.
     parser = argparse.ArgumentParser()
-    parser.add_argument('--nii', help='image .nii file')
+    parser.add_argument('nii', help='.nii file')
+    parser.add_argument("-m", action="store_true", help="multi line output")
     args = parser.parse_args()
+    nii_file = args.nii
 
-    nii_file = vars(args)['nii']
-    print(nii_file)
-    if not nii_file:
-        print('please specifiy .nii file')
-        return 1
-    nii_file = Path(nii_file)
-    if not nii_file.exists():
-        print(str(nii_file), ' does not exist.')
-
+    # Load nii file.
     reader = sitk.ImageFileReader()
     reader.SetImageIO('NiftiImageIO')
     reader.SetFileName(str(nii_file))
     img = reader.Execute()
 
-    print('Size:      ', img.GetSize())
-    print('Spacing:   ', img.GetSpacing())
-    print('Origin:    ', img.GetOrigin())
-    print('Direction: ', img.GetDirection())
-    #print('MetaData:  ')
+    # todo switch one line / multi line output
+    template = ' Size: {}{} Spacing: {}{} Origin: {}{} Direction: {}'
+    sep = ''
+    if args.m:
+        sep = '\n'
+    print(template.format(img.GetSize(), sep,
+                          img.GetSpacing(), sep,
+                          img.GetOrigin(), sep,
+                          img.GetDirection()))
+
+    # todo show metadata
+    #print('MetaData:  '
     #for key in img.GetMetaDataKeys():
     #    print(key, ': ', img.GetMetaData(key))
-
 
 if __name__ == '__main__':
     main()
