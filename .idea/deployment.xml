@@ -16,6 +16,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="ubuntu@127.0.0.1:2022 (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/mnt/home/raheppt1/projects/toolbox" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
     <option name="myAutoUpload" value="ALWAYS" />
   </component>

@@ -13,7 +13,7 @@ def main():
     # Parse arguments.
     parser = argparse.ArgumentParser()
     parser.add_argument('nii', help='.nii file')
-    parser.add_argument("-m", action="store_true", help="multi line output")
+    parser.add_argument('-m', '--multiline', action="store_true", help="multi line output")
     args = parser.parse_args()
     nii_file = args.nii
 
@@ -26,7 +26,7 @@ def main():
     # todo switch one line / multi line output
     template = ' Size: {}{} Spacing: {}{} Origin: {}{} Direction: {}'
     sep = ''
-    if args.m:
+    if args.multiline:
         sep = '\n'
     print(template.format(img.GetSize(), sep,
                           img.GetSpacing(), sep,
