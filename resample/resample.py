@@ -119,6 +119,16 @@ def resample_img_to_ref(img, config, ref_img=None):
 
     # read parameters from config
     target_size = img.GetSize()
+    target_spacing = img.GetSpacing()
+
+    if config['SetTargetSpacing'] is None:
+        target_spacing = ref_img.GetSpacing()
+    else:
+        target_spacing = config['SetTargetSpacing']
+        # For values <= keep the spacing from img.
+        for i, space in enumerate(target_spacing, 0):
+            if space <= 0:
+                target_spacing[i] = ref_img.GetSpacing()[i]
 
     if config['SetTargetSize'] is None:
         target_size = ref_img.GetSize()
@@ -126,11 +136,16 @@ def resample_img_to_ref(img, config, ref_img=None):
         target_size = config['SetTargetSize']
         target_size = target_size.tolist()
 
-    target_spacing = img.GetSpacing()
-    if config['SetTargetSpacing'] is None:
-        target_spacing = ref_img.GetSpacing()
-    else:
-        target_spacing = config['SetTargetSpacing']
+        for i, size in enumerate(target_size, 0):
+            # For values < 0 compute the size from target spacing.
+            # For zero values keep the size from img.
+            if size == 0:
+                target_size[i] = ref_img.GetSize()[i]
+            elif size < 0:
+                img_size = ref_img.GetSize()[i]
+                img_spacing = ref_img.GetSpacing()[i]
+                new_spacing = target_spacing[i]
+                target_size[i] = int(img_size*img_spacing/new_spacing)
 
     target_origin = img.GetOrigin()
     if config['SetTargetOrigin'] is None:
@@ -226,7 +241,8 @@ def main():
         praefix = 'rs_'
         if args.Praefix:
             praefix = args.Praefix
-        out_file = nii_file.parent.joinpath(praefix+nii_file.name)
+        #out_file = nii_file.parent.joinpath(praefix+nii_file.name)
+        out_file = nii_file.parent.joinpath(nii_file.name.replace('.nii', praefix+'.nii'))
 
     ref_file = args.Reference
     print(f'Reference: {ref_file}')
