@@ -96,6 +96,7 @@ def sort_dcm_dir(dicom_dir):
 
 def dcm2nii_zipped(zip_file, output_dir, 
                    add_id=False,
+                   single_dir=False,
                    verbose=False):
     """ Converts zipped NAKO DICOM data stored in a sequence folder 
         (e.g.'/mnt/data/rawdata/NAKO_195/NAKO-195_MRT-Dateien/3D_GRE_TRA_W') 
@@ -106,6 +107,8 @@ def dcm2nii_zipped(zip_file, output_dir,
         zip_file {str/Path} -- zip file to extract
         output_dir {str/Path} -- output directory for nifti files
         add_id {bool} -- add subject id (parsed from folder name) as praefix
+        single_dir {bool} -- save nifti files in a single directory (no subdirs)
+        verbose {bool} -- activate prints
     """
 
     f = Path(zip_file)
@@ -124,7 +127,7 @@ def dcm2nii_zipped(zip_file, output_dir,
     if verbose:
         print('converting ... ')
 
-    # create folder with subject id 
+    # create folder with subject id
     dest_dir = output_dir.joinpath(subj_id)
     dest_dir.mkdir(exist_ok=True)
 
@@ -135,15 +138,24 @@ def dcm2nii_zipped(zip_file, output_dir,
 
     # rename nifti file
     nii_path = next(dest_dir.glob('*.nii.gz'))
-    # if add_id = True use subj_id as filename praefix
-    subj_str = (subj_id  + '_') if add_id else ''
-    shutil.move(nii_path, dest_dir.joinpath(f'{subj_str}{nii_path.name}'))
+
+    if single_dir:
+        # use id praefix, if all files are saved in one directory
+        subj_str = (subj_id + '_')
+        shutil.move(nii_path, output_dir.joinpath(f'{subj_str}{nii_path.name}'))
+        shutil.rmtree(dest_dir)
+    else:
+        # if add_id = True use subj_id as filename praefix
+        subj_str = (subj_id  + '_') if add_id else ''
+        shutil.move(nii_path, dest_dir.joinpath(f'{subj_str}{nii_path.name}'))
+
     # delete tmp directory
     tmp.cleanup()
 
 
 def dcm2nii_zipped_dixon(zip_file, output_dir,
                          add_id=False,
+                         single_dir=False,
                          verbose=False):
     """ Converts zipped NAKO DICOM data stored in a sequence folder 
         (e.g.'/mnt/data/rawdata/NAKO_195/NAKO-195_MRT-Dateien/3D_GRE_TRA_W_COMPOSED') 
@@ -154,6 +166,8 @@ def dcm2nii_zipped_dixon(zip_file, output_dir,
         zip_file {str/Path} -- zip file to extract
         output_dir {str/Path} -- output directory for nifti files
         add_id {bool} -- add subject id (parsed from folder name) as praefix
+        single_dir {bool} -- save nifti files in a single directory (no subdirs)
+        verbose {bool} -- activate prints
     """
 
     f = Path(zip_file)
@@ -169,7 +183,7 @@ def dcm2nii_zipped_dixon(zip_file, output_dir,
     # unzip to temp directory
     unzip(f, tmp.name)  
    
-    # create folder with subject id 
+    # create folder with subject id, if single_dir = False
     dest_dir = output_dir.joinpath(subj_id)
     dest_dir.mkdir(exist_ok=True)
 
@@ -183,7 +197,7 @@ def dcm2nii_zipped_dixon(zip_file, output_dir,
     sort_dcm_dir(next(dcm_dir.glob('*')))
     
     for contrast in contrasts:
-        # create subfolder foreach contrast
+        # create subfolder foreach contrast, if single_dir = False
         contrast_dest_dir = dest_dir.joinpath(contrast)
         contrast_dest_dir.mkdir(exist_ok=True)
         dixon_dir = dcm_dir.joinpath(contrast)
@@ -191,12 +205,22 @@ def dcm2nii_zipped_dixon(zip_file, output_dir,
 
         # rename nifti file
         nii_path = next(contrast_dest_dir.glob('*.nii.gz'))
-        # if add_id = True use subj_id as filename praefix
-        subj_str = (subj_id + '_') if add_id else ''
-        shutil.move(nii_path, contrast_dest_dir.joinpath(f'{subj_str}{contrast}.nii.gz'))
-   
+                
+        if single_dir:
+            # use id praefix, if all files are saved in one directory
+            subj_str = (subj_id + '_')
+            shutil.move(nii_path, output_dir.joinpath(f'{subj_str}{contrast}.nii.gz'))
+        else:
+            # if add_id = True use subj_id as filename praefix
+            subj_str = (subj_id + '_') if add_id else ''
+            shutil.move(nii_path, contrast_dest_dir.joinpath(f'{subj_str}{contrast}.nii.gz'))
+
+    if single_dir:
+        shutil.rmtree(dest_dir)
+
     # delete tmp directory
     tmp.cleanup()
+
 
 if __name__ == '__main__':
     """
@@ -212,17 +236,19 @@ if __name__ == '__main__':
     parser.add_argument('--id', action='store_true')
     parser.add_argument('--cores', type=int, choices=range(1, num_cores+1))
     parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-s', '--singledir', action='store_true', help='Store all nifti files in one directory (no sub-dirs).')
     args = parser.parse_args()
    
     zip_dir = Path(args.zip_dir)
     out_dir = Path(args.out_dir)
-
     
     def process_file(f):
         if args.dixon:
-            dcm2nii_zipped_dixon(f, out_dir, args.id, args.verbose)
+            dcm2nii_zipped_dixon(f, out_dir, args.id,
+                                 args.verbose, args.singledir)
         else:
-            dcm2nii_zipped(f, out_dir, args.id, args.verbose)
+            dcm2nii_zipped(f, out_dir, args.id, 
+                           args.verbose, args.singledir)
 
     # single process version
     #t = time.time()
@@ -235,7 +261,9 @@ if __name__ == '__main__':
     if args.cores:
         num_cores = args.cores
     print(f'using {num_cores} CPU cores')
+
     t = time.time()
     results = Parallel(n_jobs=num_cores)(delayed(process_file)(f) for f in zip_dir.glob('*.zip'))
     elapsed_time = time.time() - t
+
     print(f'elapsed time: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))}')
