@@ -245,16 +245,18 @@ if __name__ == '__main__':
     def process_file(f):
         if args.dixon:
             dcm2nii_zipped_dixon(f, out_dir, args.id,
-                                 args.verbose, args.singledir)
+                                 args.singledir, args.verbose)
         else:
             dcm2nii_zipped(f, out_dir, args.id, 
-                           args.verbose, args.singledir)
+                            args.singledir, args.verbose)
 
     # single process version
     #t = time.time()
     #for f in zip_dir.glob('*.zip'):
     #    process_file(f)
     #elapsed_time = time.time() - t
+
+    file_list = list(zip_dir.glob('*.zip'))
 
     # multiprocessing 
     num_cores = 10
@@ -263,7 +265,8 @@ if __name__ == '__main__':
     print(f'using {num_cores} CPU cores')
 
     t = time.time()
-    results = Parallel(n_jobs=num_cores)(delayed(process_file)(f) for f in zip_dir.glob('*.zip'))
+    results = Parallel(n_jobs=num_cores)(
+        delayed(process_file)(f) for f in file_list)
     elapsed_time = time.time() - t
 
     print(f'elapsed time: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))}')
