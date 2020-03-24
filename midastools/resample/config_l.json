@@ -1,0 +1,9 @@
+{
+    "interpolator": "NearestNeighbour",
+    "DefaultValue": 0,
+
+    "SetTargetSize": false,
+    "SetTargetSpacing": false,
+    "SetTargetOrigin": false,
+    "SetTargetDirection": false
+}

@@ -1,0 +1,12 @@
+{
+    "pattern_img": "**/*ct.nii",
+    "interpolator": "BSpline",
+    "DefaultValue": -1024.0,
+
+    "SetTargetSize": true,
+    "TargetSize": [256, 256, 512],
+    "SetTargetSpacing": true,
+    "TargetSpacing": [2.0, 2.0, 3.0],
+    "SetTargetOrigin": false,
+    "SetTargetDirection": false
+}
