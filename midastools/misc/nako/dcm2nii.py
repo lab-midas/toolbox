@@ -5,7 +5,8 @@ Dicom to nifti conversion for NAKO zipped imaging studies.
 
 Example:
     Example usage::
-        $ python dcm2nii /srcdir /destdir :dixon -v 
+        $ python dcm2nii -h 
+        $ python dcm2nii /srcdir /destdir --dixon -v --id
 
 Todo:
     * ...
@@ -147,7 +148,7 @@ def dcm2nii_zipped(zip_file, output_dir,
     try:
         unzip(f, tmp.name)
     except:
-        print(f'zip error (subj_id)', file=sys.stderr)
+        print(f'zip error {subj_id}', file=sys.stderr)
         return
 
     if verbose:
@@ -169,15 +170,15 @@ def dcm2nii_zipped(zip_file, output_dir,
         if single_dir:
             # use id praefix, if all files are saved in one directory
             subj_str = (subj_id + '_')
-            shutil.move(nii_path, output_dir.joinpath(f'(subj_str)(nii_path.name)'))
+            shutil.move(nii_path, output_dir.joinpath(subj_str + nii_path.name))
             shutil.rmtree(dest_dir)
         else:
             # if add_id = True use subj_id as filename praefix
             subj_str = (subj_id  + '_') if add_id else ''
-            shutil.move(nii_path, dest_dir.joinpath(f'(subj_str)(nii_path.name)'))
+            shutil.move(nii_path, dest_dir.joinpath(subj_str + nii_path.name))
 
     except:
-        print(f'conversion error (subj_id)', file=sys.stderr)
+        print(f'conversion error {subj_id}', file=sys.stderr)
         shutil.rmtree(dest_dir)
 
     finally:
@@ -219,7 +220,7 @@ def dcm2nii_zipped_dixon(zip_file, output_dir,
     try:
         unzip(f, tmp.name)  
     except:
-        print(f'zip error (subj_id)', file=sys.stderr)
+        print(f'zip error {subj_id}', file=sys.stderr)
         return
    
     # create folder with subject id, if single_dir = False
@@ -249,17 +250,17 @@ def dcm2nii_zipped_dixon(zip_file, output_dir,
             if single_dir:
                 # use id praefix, if all files are saved in one directory
                 subj_str = (subj_id + '_')
-                shutil.move(nii_path, output_dir.joinpath(f'(subj_str)(contrast).nii.gz'))
+                shutil.move(nii_path, output_dir.joinpath(f'{subj_str}{contrast}.nii.gz'))
             else:
                 # if add_id = True use subj_id as filename praefix
                 subj_str = (subj_id + '_') if add_id else ''
-                shutil.move(nii_path, contrast_dest_dir.joinpath(f'(subj_str)(contrast).nii.gz'))
+                shutil.move(nii_path, contrast_dest_dir.joinpath(f'{subj_str}{contrast}.nii.gz'))
 
         if single_dir:
             shutil.rmtree(dest_dir)
 
     except:
-        print(f'conversion error (subj_id)', file=sys.stderr)
+        print(f'conversion error {subj_id}', file=sys.stderr)
         shutil.rmtree(dest_dir)
 
     finally:
@@ -307,11 +308,11 @@ if __name__ == '__main__':
     num_cores = 10
     if args.cores:
         num_cores = args.cores
-    print(f'using (num_cores) CPU cores')
+    print(f'using {num_cores} CPU cores')
 
     t = time.time()
     results = Parallel(n_jobs=num_cores)(
         delayed(process_file)(f) for f in file_list)
     elapsed_time = time.time() - t
 
-    print(f'elapsed time: (time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))')
+    print(f'elapsed time: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))}')
