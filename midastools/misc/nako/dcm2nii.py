@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Example Google style docstrings.
+"""Dicom to nifti conversion for NAKO zipped imaging studies.
 
 Dicom to nifti conversion for NAKO zipped imaging studies.
 
@@ -32,7 +32,7 @@ from joblib import Parallel, delayed
 
 
 def unzip(zip_file, output_dir):
-    """ Unzips a zip file to a temporary dicom directory in the outputdir
+    """Unzips a zip file to a temporary dicom directory in the outputdir
     
     Args:
         zip_file (str/Path): zip file to extract
@@ -44,7 +44,7 @@ def unzip(zip_file, output_dir):
 
 
 def get_dcm_names(dicom_dir):
-    """ Returns the path/names of all DICOM files in a folder as strings
+    """Returns the path/names of all DICOM files in a folder as strings
     
     Args:
         dicom_dir (str/Path) : dicom directory
@@ -60,7 +60,7 @@ def get_dcm_names(dicom_dir):
     
 
 def conv_dicom_nii(dicom_dir, nifti_dir):
-    """ Convert dicom directory to nifti file.
+    """Convert dicom directory to nifti file.
 
     Replaces DICOM files in a specified directory by .nii.gz files; 
     initial DICOM files are deleted.
@@ -76,7 +76,7 @@ def conv_dicom_nii(dicom_dir, nifti_dir):
              
 
 def sort_dcm_dir(dicom_dir):
-    """ Seperate dixon contrasts.
+    """Seperate dixon contrasts.
     
     Separates dixon contrasts stored into four different folders named 
     'fat','water','in','opp', deletes original folder.
@@ -118,7 +118,7 @@ def dcm2nii_zipped(zip_file, output_dir,
                    add_id=False,
                    single_dir=False,
                    verbose=False):
-    """ Covert single sequence zip to nifti.
+    """Covert single sequence zip to nifti.
     
     Converts zipped NAKO DICOM data stored in a sequence folder 
     (e.g.'/mnt/data/rawdata/NAKO_195/NAKO-195_MRT-Dateien/3D_GRE_TRA_W') 
@@ -190,7 +190,7 @@ def dcm2nii_zipped_dixon(zip_file, output_dir,
                          add_id=False,
                          single_dir=False,
                          verbose=False):
-    """ Covert dixon sequence zip (with four contrasts) to nifti.
+    """Covert dixon sequence zip (with four contrasts) to nifti.
 
     Converts zipped NAKO DICOM data stored in a sequence folder 
     (e.g.'/mnt/data/rawdata/NAKO_195/NAKO-195_MRT-Dateien/3D_GRE_TRA_W_COMPOSED') 
