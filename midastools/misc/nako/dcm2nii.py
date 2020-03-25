@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import sys
 import time
 import re
 import tempfile
@@ -121,8 +122,13 @@ def dcm2nii_zipped(zip_file, output_dir,
 
     if verbose:
         print('unzipping: ', f)
+
     # unzip to temp directory
-    unzip(f, tmp.name)
+    try:
+        unzip(f, tmp.name)
+    except:
+        print(f'zip error {subj_id}', file=sys.stderr)
+        return
 
     if verbose:
         print('converting ... ')
@@ -131,26 +137,32 @@ def dcm2nii_zipped(zip_file, output_dir,
     dest_dir = output_dir.joinpath(subj_id)
     dest_dir.mkdir(exist_ok=True)
 
-    # convert dicom files in tmpdir to nii file 
-    dcm_dir = next(Path(tmp.name).glob('*'))
-    dcm_dir = next(dcm_dir.glob('*'))
-    conv_dicom_nii(dcm_dir, dest_dir)
+    try:
+        # convert dicom files in tmpdir to nii file 
+        dcm_dir = next(Path(tmp.name).glob('*'))
+        dcm_dir = next(dcm_dir.glob('*'))
+        conv_dicom_nii(dcm_dir, dest_dir)
 
-    # rename nifti file
-    nii_path = next(dest_dir.glob('*.nii.gz'))
+        # rename nifti file
+        nii_path = next(dest_dir.glob('*.nii.gz'))
 
-    if single_dir:
-        # use id praefix, if all files are saved in one directory
-        subj_str = (subj_id + '_')
-        shutil.move(nii_path, output_dir.joinpath(f'{subj_str}{nii_path.name}'))
+        if single_dir:
+            # use id praefix, if all files are saved in one directory
+            subj_str = (subj_id + '_')
+            shutil.move(nii_path, output_dir.joinpath(f'{subj_str}{nii_path.name}'))
+            shutil.rmtree(dest_dir)
+        else:
+            # if add_id = True use subj_id as filename praefix
+            subj_str = (subj_id  + '_') if add_id else ''
+            shutil.move(nii_path, dest_dir.joinpath(f'{subj_str}{nii_path.name}'))
+
+    except:
+        print(f'conversion error {subj_id}', file=sys.stderr)
         shutil.rmtree(dest_dir)
-    else:
-        # if add_id = True use subj_id as filename praefix
-        subj_str = (subj_id  + '_') if add_id else ''
-        shutil.move(nii_path, dest_dir.joinpath(f'{subj_str}{nii_path.name}'))
 
-    # delete tmp directory
-    tmp.cleanup()
+    finally:
+        # delete tmp directory
+        tmp.cleanup()
 
 
 def dcm2nii_zipped_dixon(zip_file, output_dir,
@@ -180,8 +192,13 @@ def dcm2nii_zipped_dixon(zip_file, output_dir,
     
     if verbose:
         print('unzipping: ', f)
+
     # unzip to temp directory
-    unzip(f, tmp.name)  
+    try:
+        unzip(f, tmp.name)  
+    except:
+        print(f'zip error {subj_id}', file=sys.stderr)
+        return
    
     # create folder with subject id, if single_dir = False
     dest_dir = output_dir.joinpath(subj_id)
@@ -192,35 +209,41 @@ def dcm2nii_zipped_dixon(zip_file, output_dir,
     if verbose:
         print('converting ...')
 
-    # sort dcm directory
-    dcm_dir = next(Path(tmp.name).glob('*'))
-    sort_dcm_dir(next(dcm_dir.glob('*')))
-    
-    for contrast in contrasts:
-        # create subfolder foreach contrast, if single_dir = False
-        contrast_dest_dir = dest_dir.joinpath(contrast)
-        contrast_dest_dir.mkdir(exist_ok=True)
-        dixon_dir = dcm_dir.joinpath(contrast)
-        conv_dicom_nii(dixon_dir, contrast_dest_dir)
+    try:
+        # sort dcm directory
+        dcm_dir = next(Path(tmp.name).glob('*'))
+        sort_dcm_dir(next(dcm_dir.glob('*')))
+        
+        for contrast in contrasts:
+            # create subfolder foreach contrast, if single_dir = False
+            contrast_dest_dir = dest_dir.joinpath(contrast)
+            contrast_dest_dir.mkdir(exist_ok=True)
+            dixon_dir = dcm_dir.joinpath(contrast)
+            conv_dicom_nii(dixon_dir, contrast_dest_dir)
 
-        # rename nifti file
-        nii_path = next(contrast_dest_dir.glob('*.nii.gz'))
-                
+            # rename nifti file
+            nii_path = next(contrast_dest_dir.glob('*.nii.gz'))
+                    
+            if single_dir:
+                # use id praefix, if all files are saved in one directory
+                subj_str = (subj_id + '_')
+                shutil.move(nii_path, output_dir.joinpath(f'{subj_str}{contrast}.nii.gz'))
+            else:
+                # if add_id = True use subj_id as filename praefix
+                subj_str = (subj_id + '_') if add_id else ''
+                shutil.move(nii_path, contrast_dest_dir.joinpath(f'{subj_str}{contrast}.nii.gz'))
+
         if single_dir:
-            # use id praefix, if all files are saved in one directory
-            subj_str = (subj_id + '_')
-            shutil.move(nii_path, output_dir.joinpath(f'{subj_str}{contrast}.nii.gz'))
-        else:
-            # if add_id = True use subj_id as filename praefix
-            subj_str = (subj_id + '_') if add_id else ''
-            shutil.move(nii_path, contrast_dest_dir.joinpath(f'{subj_str}{contrast}.nii.gz'))
+            shutil.rmtree(dest_dir)
 
-    if single_dir:
+    except:
+        print(f'conversion error {subj_id}', file=sys.stderr)
         shutil.rmtree(dest_dir)
 
-    # delete tmp directory
-    tmp.cleanup()
-
+    finally:
+        # delete tmp directory
+        tmp.cleanup()
+        return
 
 if __name__ == '__main__':
     """
