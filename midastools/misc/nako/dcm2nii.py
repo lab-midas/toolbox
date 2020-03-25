@@ -277,12 +277,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert dicom directories into nifti files.')
     parser.add_argument('zip_dir', help='Path to directory with zipped files.')
     parser.add_argument('out_dir', help='Output directory to store niftis.')
-    parser.add_argument(':dixon', action='store_true',
+    parser.add_argument('--dixon', action='store_true',
                         help='Dicom directories includes different dixon contrasts.')
-    parser.add_argument(':id', action='store_true')
-    parser.add_argument(':cores', type=int, choices=range(1, num_cores+1))
-    parser.add_argument('-v', ':verbose', action='store_true')
-    parser.add_argument('-s', ':singledir', action='store_true', help='Store all nifti files in one directory (no sub-dirs).')
+    parser.add_argument('--id', action='store_true')
+    parser.add_argument('--cores', type=int, choices=range(1, num_cores+1))
+    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-s', '--singledir', action='store_true', help='Store all nifti files in one directory (no sub-dirs).')
     args = parser.parse_args()
    
     zip_dir = Path(args.zip_dir)
