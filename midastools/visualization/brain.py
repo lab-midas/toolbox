@@ -57,17 +57,17 @@ def vis_brain_grid(image, axis_sel=1, n_slices=9,
         cmap (string, optional): Colormap. Defaults to 'gray'.
     """
     # n_slices should me a multiple of three.
-    max_slices = image.shape[axis_sel+1]
+    max_slices = image.shape[axis_sel]
     if normalize:
         image = (image - np.mean(image))/(np.std(image))
 
-    image = image[0, ...]
     if axis_sel == 1:
-        image = image.transpose([1, 2, 0])
+        plt_img = image.transpose([1, 2, 0])
     elif axis_sel == 2:
-        image = image.transpose([2, 0, 1])
+        plt_img = image.transpose([2, 0, 1])
 
-    image_list = [image[max_slices//n_slices*k, :, :] for k in range(n_slices)]
+    image_list = [plt_img[max_slices//n_slices*k, :, :]
+                  for k in range(n_slices)]
 
     fig = plt.figure(figsize=figsize)
     grid = ImageGrid(fig, 111,  # similar to subplot(111)
