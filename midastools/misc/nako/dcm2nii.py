@@ -139,7 +139,7 @@ def dcm2nii_zipped(zip_file, output_dir,
     # create temp directory
     tmp = tempfile.TemporaryDirectory()
     # get subject id
-    subj_id = re.match('.*([0-9](6)).*', f.name).group(1) 
+    subj_id = re.match('.*([0-9]{6}).*', f.name).group(1) 
 
     if verbose:
         print('unzipping: ', f)
@@ -211,7 +211,7 @@ def dcm2nii_zipped_dixon(zip_file, output_dir,
     # create temp directory
     tmp = tempfile.TemporaryDirectory()
     # get subject id
-    subj_id = re.match('.*([0-9](6)).*', f.name).group(1)
+    subj_id = re.match('.*([0-9]{6}).*', f.name).group(1)
     
     if verbose:
         print('unzipping: ', f)
