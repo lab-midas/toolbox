@@ -59,7 +59,7 @@ def flirt_registration(input_file,
         ref_file (str/Path): path to MNI-152-1mm reference file (nii.gz)
         verbose (bool): print fsl command 
     """
-    flt = fsl.FLIRT(bins=640, cost_func='mutualinfo')
+    flt = fsl.FLIRT(bins=256, cost_func='mutualinfo')
     flt.inputs.in_file = str(input_file)
     flt.inputs.reference = str(ref_file)
     flt.inputs.output_type = "NIFTI_GZ"
@@ -130,7 +130,7 @@ def fcm_normalize(input_file,
     img = nib.load(str(input_file))
     brain_mask = nib.load(str(mask_file))
 
-    wm_mask = intensity_normalization.normalize.fcm.find_wm_mask(img, brain_mask)
+    wm_mask = intensity_normalization.normalize.fcm.find_tissue_mask(img, brain_mask)
     normalized = intensity_normalization.normalize.fcm.fcm_normalize(img, wm_mask)
 
     nib.save(wm_mask, str(output_mask))
@@ -228,7 +228,7 @@ def main():
 
     reference_file = '/mnt/qdata/tools/fsl/ref/MNI152_T1_1mm.nii.gz'
     if args.reference:
-        reference_file = reference_file
+        reference_file = args.reference
 
     robex_dir = '/mnt/qdata/tools/robex'
     if args.robex:
