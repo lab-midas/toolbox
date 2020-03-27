@@ -225,7 +225,7 @@ def main():
     parser.add_argument('output_dir', help='Output directory to store processed files.')
     parser.add_argument('--reference', help='MNI152-1mm reference .nii.gz file')
     parser.add_argument('--robex', help='ROBEX installation directory.')
-    parser.add_argument('--split', help='Split bias field correction (0) from the followings steps (1). Process at once (-1).')
+    parser.add_argument('--split', help='Split bias field correction (0) from the followings steps (1). Process at once (-1).', type=int)
     parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
 
