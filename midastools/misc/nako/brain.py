@@ -143,6 +143,7 @@ def process_brain_t1(input_file,
                      output_dir,
                      reference_file='/mnt/qdata/tools/fsl/ref/MNI152_T1_1mm.nii.gz',
                      robex_dir='/mnt/qdata/tools/robex',
+                     split=-1,
                      verbose=False):
     
     input_file = Path(input_file)
@@ -163,46 +164,50 @@ def process_brain_t1(input_file,
     print('(n4) bias field correction ...')
     n4_file = output_dir.joinpath(
         'n4_flirt', input_file.name.replace('.nii.gz', '_n4.nii.gz'))
-    n4_bias_field_correction(input_file, n4_file)
+    # split < -1 process the whole pipeline at once
+    # split == 0 bias field corrections only ...
+    if split <= 0: 
+        n4_bias_field_correction(input_file, n4_file)
 
-    # mni coregistration
-    print('(fsl-flirt) mni template registration ...')
-    input_file = n4_file
-    n4_flirt_file = output_dir.joinpath(
-    'n4_flirt', input_file.name.replace('.nii.gz', '_flirt.nii.gz'))
-    n4_flirt_matrix = output_dir.joinpath(
-    'n4_flirt', input_file.name.replace('.nii.gz', '_flirt.mat'))
-    flirt_registration(input_file, n4_flirt_file,
-                       n4_flirt_matrix, reference_file, verbose=verbose)
-    # delete unregistered n4 file
-    n4_file.unlink()
+    # split < -1 process the whole pipeline at once
+    # split == 1 continue with coregistration ...
+    if split < 0 or split == 1:
+        # mni coregistration
+        print('(fsl-flirt) mni template registration ...')
+        input_file = n4_file
+        n4_flirt_file = output_dir.joinpath(
+        'n4_flirt', input_file.name.replace('.nii.gz', '_flirt.nii.gz'))
+        n4_flirt_matrix = output_dir.joinpath(
+        'n4_flirt', input_file.name.replace('.nii.gz', '_flirt.mat'))
+        flirt_registration(input_file, n4_flirt_file,
+                        n4_flirt_matrix, reference_file, verbose=verbose)
 
-    # robex skull stripping 
-    print('(robex) skull stripping ...')
-    input_file = n4_flirt_file
-    n4_flirt_robex_file = output_dir.joinpath('n4_flirt_robex_fcm',
-                                                input_file.name.replace('.nii.gz', '_robex.nii.gz'))
-    n4_flirt_robex_mask = output_dir.joinpath('n4_flirt_robex_fcm',
-                                                input_file.name.replace('.nii.gz', '_robexmask.nii.gz'))
-    robex_skull_stripping(input_file, 
-                          n4_flirt_robex_file,
-                          n4_flirt_robex_mask,
-                          robex_dir,
-                          verbose=verbose)
-    # delete stripped mri (can be produce later on, using the dilated mask)
-    n4_flirt_robex_file.unlink()
+        # robex skull stripping 
+        print('(robex) skull stripping ...')
+        input_file = n4_flirt_file
+        n4_flirt_robex_file = output_dir.joinpath('n4_flirt_robex_fcm',
+                                                    input_file.name.replace('.nii.gz', '_robex.nii.gz'))
+        n4_flirt_robex_mask = output_dir.joinpath('n4_flirt_robex_fcm',
+                                                    input_file.name.replace('.nii.gz', '_robexmask.nii.gz'))
+        robex_skull_stripping(input_file, 
+                            n4_flirt_robex_file,
+                            n4_flirt_robex_mask,
+                            robex_dir,
+                            verbose=verbose)
+        # delete stripped mri (can be produced later on, using the dilated mask)
+        n4_flirt_robex_file.unlink()
 
-    print('(fcm) intensity normalization')
-    input_file = n4_flirt_file
-    mask_file = n4_flirt_robex_mask
-    n4_flirt_fcmwmmask = str(output_dir.joinpath('n4_flirt_robex_fcm',
-        input_file.name.replace('.nii.gz', '_fcmwmmask.nii.gz')))
-    n4_flirt_fcmnorm= str(output_dir.joinpath('n4_flirt_robex_fcm',
-        input_file.name.replace('.nii.gz', '_fcmnorm.nii.gz')))
-    fcm_normalize(input_file, 
-                  mask_file,
-                  n4_flirt_fcmnorm,
-                  n4_flirt_fcmwmmask)
+        print('(fcm) intensity normalization')
+        input_file = n4_flirt_file
+        mask_file = n4_flirt_robex_mask
+        n4_flirt_fcmwmmask = str(output_dir.joinpath('n4_flirt_robex_fcm',
+            input_file.name.replace('.nii.gz', '_fcmwmmask.nii.gz')))
+        n4_flirt_fcmnorm= str(output_dir.joinpath('n4_flirt_robex_fcm',
+            input_file.name.replace('.nii.gz', '_fcmnorm.nii.gz')))
+        fcm_normalize(input_file, 
+                    mask_file,
+                    n4_flirt_fcmnorm,
+                    n4_flirt_fcmwmmask)
 
     # stop timer
     elapsed_time = time.time() - t
@@ -220,6 +225,7 @@ def main():
     parser.add_argument('output_dir', help='Output directory to store processed files.')
     parser.add_argument('--reference', help='MNI152-1mm reference .nii.gz file')
     parser.add_argument('--robex', help='ROBEX installation directory.')
+    parser.add_argument('--split', help='Split bias field correction (0) from the followings steps (1). Process at once (-1).')
     parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
 
@@ -234,10 +240,15 @@ def main():
     if args.robex:
         robex_dir = args.robex
 
+    split = -1
+    if args.split:
+        split = args.split
+
     process_brain_t1(args.input_file,
                      args.output_dir,
                      reference_file=reference_file,
                      robex_dir=robex_dir,
+                     split=split,
                      verbose=args.verbose)
 
 
