@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 
 
-def fillholes(nii_file,
+def fillholes_nii(nii_file,
               outpath):
     """Binary fill holes using scipy.ndimage
 
@@ -13,28 +13,37 @@ def fillholes(nii_file,
         nii_file (str/Path): input nii mask file
         outpath (str/Path): output path to save modified file
     """
-
-     # Read nii image.
+    # Read nii image.
     label = sitk.ReadImage(str(nii_file))
     print(label.GetSize())
 
     # Binary fill holes.
-    input = sitk.GetArrayFromImage(label)
-    output = scipy.ndimage.morphology.binary_fill_holes(input)
-    output = output.astype(np.uint8)
-
-    filled_label = sitk.GetImageFromArray(output)
+    input_label = sitk.GetArrayFromImage(label)
+    output_label = fillholes(input_label)
+    filled_label = sitk.GetImageFromArray(output_label)
     filled_label.SetDirection(label.GetDirection())
     filled_label.SetOrigin(label.GetOrigin())
     filled_label.SetSpacing(label.GetSpacing())
-    #for index, x in np.ndenumerate(output):
-    #   label.SetPixel(index[2], index[1], index[0], int(x))
 
     # Write result to outpath.
     writer = sitk.ImageFileWriter()
     print("Writing output to :", outpath)
     writer.SetFileName(str(outpath))
     writer.Execute(filled_label)
+
+
+def fillholes(input_label):
+    """Binary fill holes using scipy.ndimage
+    
+    Args:
+        input_label (np.array): input label
+    
+    Returns:
+        np.array: filled label
+    """
+    output_label = scipy.ndimage.morphology.binary_fill_holes(input_label)
+    output_label = output_label.astype(np.uint8)
+    return output_label
 
 
 def main():
@@ -57,7 +66,8 @@ def main():
             praefix = args.Praefix
         outpath = nii_file.parent.joinpath(praefix + nii_file.name)
 
-    fillholes(nii_file, outpath):
+    fillholes_nii(nii_file, outpath)
+
 
 if __name__ == '__main__':
     main()
