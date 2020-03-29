@@ -6,44 +6,43 @@ import numpy as np
 
 
 def fillholes_nii(nii_file,
-              outpath):
+                  out_file):
     """Binary fill holes using scipy.ndimage
 
     Args:
         nii_file (str/Path): input nii mask file
-        outpath (str/Path): output path to save modified file
+        out_file (str/Path): output path to save modified file
     """
     # Read nii image.
-    label = sitk.ReadImage(str(nii_file))
-    print(label.GetSize())
+    mask = sitk.ReadImage(str(nii_file))
 
     # Binary fill holes.
-    input_label = sitk.GetArrayFromImage(label)
-    output_label = fillholes(input_label)
-    filled_label = sitk.GetImageFromArray(output_label)
-    filled_label.SetDirection(label.GetDirection())
-    filled_label.SetOrigin(label.GetOrigin())
-    filled_label.SetSpacing(label.GetSpacing())
+    input_mask = sitk.GetArrayFromImage(mask)
+    output_mask = fillholes(input_mask)
+    filled_mask = sitk.GetImageFromArray(output_mask)
+    filled_mask.SetDirection(mask.GetDirection())
+    filled_mask.SetOrigin(mask.GetOrigin())
+    filled_mask.SetSpacing(mask.GetSpacing())
 
     # Write result to outpath.
     writer = sitk.ImageFileWriter()
-    print("Writing output to :", outpath)
-    writer.SetFileName(str(outpath))
-    writer.Execute(filled_label)
+    print("Writing output to :", out_file)
+    writer.SetFileName(str(out_file))
+    writer.Execute(filled_mask)
 
 
-def fillholes(input_label):
+def fillholes(input_mask):
     """Binary fill holes using scipy.ndimage
     
     Args:
-        input_label (np.array): input label
+        input_mask (np.array): input mask
     
     Returns:
-        np.array: filled label
+        np.array: filled mask
     """
-    output_label = scipy.ndimage.morphology.binary_fill_holes(input_label)
-    output_label = output_label.astype(np.uint8)
-    return output_label
+    output_mask= scipy.ndimage.morphology.binary_fill_holes(input_mask)
+    output_mask = output_mask.astype(np.uint8)
+    return output_mask
 
 
 def main():
@@ -56,7 +55,7 @@ def main():
 
     nii_file = Path(args.nii_input)
 
-    print('filling mask holes, nii image : ', str(nii_file))
+    print('Filling mask holes, nii image : ', str(nii_file))
 
     # If outpath is not set, use praefix and input filepath.
     outpath = args.Output
