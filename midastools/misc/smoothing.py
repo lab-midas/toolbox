@@ -21,7 +21,7 @@ def smooth_img(volume,
 
     """
     vtk_data = vtk_conversion.np_to_vtk_data(volume)
-    vtk_image = vtk_conversion.vtk_data_to_image(vtk_data, dims=3)
+    vtk_image = vtk_conversion.vtk_data_to_image(vtk_data, dims=volume.shape)
 
     vtk_poly = vtk_mesh.marching_cube(vtk_image)
     vtk_poly = vtk_mesh.smooth(vtk_poly, smooth_filter='laplacian')
@@ -59,14 +59,12 @@ def smooth_nii(nii_file,
     img_result.SetDirection(img.GetDirection())
     img_result.SetOrigin(img.GetOrigin())
     img_result.SetSpacing(img.GetSpacing())
-
+    
+    print("Writing output to :", out_file)
     sitk.WriteImage(img_result, str(out_file))
 
 
 def main():
-    path = '/home/raheppt1/samples_aorta/000_aorta.nii'
-    path_out = '/home/raheppt1/samples_aorta/000_aorta_smooth.nii'
-
     # Parse arguments.
     parser = argparse.ArgumentParser()
     parser.add_argument('nii_input', help='Input .nii file')
