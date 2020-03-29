@@ -5,45 +5,62 @@ import argparse
 from pathlib import Path
 
 
-def smooth_img(nii_file,
-               outpath,
+def smooth_img(volume,
+               smooth_filter='sinc',
+               smooth_iter=40,
+               relaxation=0.2):
+    """Smooths mask volume.
+
+    Args:
+        volume (np.array): mask volume
+        smooth_filter: 'sinc' oder 'laplacian'
+        smooth_iter: laplacian smoothing parameters
+        relaxation: laplacian smoothing parameters
+
+    Returns: sitk image
+
+    """
+    vtk_data = vtk_conversion.np_to_vtk_data(volume)
+    vtk_image = vtk_conversion.vtk_data_to_image(vtk_data, dims=3)
+
+    vtk_poly = vtk_mesh.marching_cube(vtk_image)
+    vtk_poly = vtk_mesh.smooth(vtk_poly, smooth_filter='laplacian')
+
+    result = vtk_conversion.poly_to_img(vtk_poly)
+
+    result = vtk_conversion.vtk_to_numpy_image(result)
+    return result
+
+
+def smooth_nii(nii_file,
+               out_file,
                smooth_filter='sinc',
                smooth_iter=40,
                relaxation=0.2):
     """Smooths input nii file and saves the smoothed volume.
     
     Args:
-        nii_file (str/Path]): input nii mask file
+        nii_file (str/Path): input nii mask file
         outpath (str/Path): output path to save modified file
         smooth_filter: 'sinc' oder 'laplacian'
         smooth_iter: laplacian smoothing parameters
         relaxation: laplacian smoothing parameters
-
     """
     img = sitk.ReadImage(str(nii_file))
     volume = sitk.GetArrayFromImage(img)
     volume = volume.transpose([2, 1, 0])
-    vtk_data = vtk_conversion.np_to_vtk_data(volume)
-    vtk_image = vtk_conversion.vtk_data_to_image(vtk_data,
-                                                 dims=img.GetSize(),
-                                                 origin=img.GetOrigin(),
-                                                 spacing=img.GetSpacing())
 
-    vtk_poly = vtk_mesh.marching_cube(vtk_image)
-    vtk_poly = vtk_mesh.smooth(vtk_poly, smooth_filter='laplacian')
-
-    result = vtk_conversion.poly_to_img(vtk_poly,
-                                        origin=img.GetOrigin(),
-                                        dim=img.GetSize(),
-                                        spacing=img.GetSpacing())
-
-    result = vtk_conversion.vtk_to_numpy_image(result)
+    result = smooth_img(volume,
+                        smooth_filter='sinc',
+                        smooth_iter=40,
+                        relaxation=0.2)
+    
     img_result = sitk.GetImageFromArray(result.transpose([2, 1, 0]))
     img_result.SetDirection(img.GetDirection())
     img_result.SetOrigin(img.GetOrigin())
     img_result.SetSpacing(img.GetSpacing())
 
-    sitk.WriteImage(img_result, str(outpath))
+    sitk.WriteImage(img_result, str(out_file))
 
 
 def main():
@@ -86,7 +103,7 @@ def main():
     if args.relaxation:
         relaxation = args.relaxation
 
-    smooth_img(img, smooth_filter, smooth_iter, relaxation)
+    smooth_nii(nii_file, out_file, smooth_filter, smooth_iter, relaxation)
 
 
 if __name__ == '__main__':
