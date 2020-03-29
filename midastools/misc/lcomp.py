@@ -1,6 +1,7 @@
 import SimpleITK as sitk
 import argparse
 import numpy as np
+from pathlib import Path
 from skimage.measure import label
 
 
@@ -19,7 +20,7 @@ def lcomp(mask):
     # the 0 label is by default background so take the rest
     list_seg = list(zip(unique, counts))[1:]
     largest = max(list_seg, key=lambda x: x[1])[0]
-    labels_max = (labels == largest).astype(int)
+    labels_max = (labels == largest).astype(np.uint8)
     return labels_max
 
 
@@ -46,6 +47,7 @@ def lcomp_nii(nii_file,
 
     # Write result to outpath.
     writer = sitk.ImageFileWriter()
+    print("Writing output to :", out_file)
     writer.SetFileName(str(out_file))
     writer.Execute(lcomp_mask)
          
@@ -60,7 +62,7 @@ def main():
 
     nii_file = Path(args.nii_input)
 
-    print('selecting largest component, nii image : ', str(nii_file))
+    print('Selecting largest component, nii image : ', str(nii_file))
 
     # If outpath is not set, use praefix and input filepath.
     outpath = args.Output
