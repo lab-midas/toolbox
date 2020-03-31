@@ -21,12 +21,18 @@ def smooth_img(volume,
 
     """
     vtk_data = vtk_conversion.np_to_vtk_data(volume)
-    vtk_image = vtk_conversion.vtk_data_to_image(vtk_data, dims=volume.shape)
+    vtk_image = vtk_conversion.vtk_data_to_image(vtk_data, 
+                                                origin=(0,0,0), 
+                                                dims=volume.shape,
+                                                spacing=(1.0, 1.0, 1.0))
 
     vtk_poly = vtk_mesh.marching_cube(vtk_image)
     vtk_poly = vtk_mesh.smooth(vtk_poly, smooth_filter='laplacian')
 
-    result = vtk_conversion.poly_to_img(vtk_poly)
+    result = vtk_conversion.poly_to_img(vtk_poly,
+                                        origin=(0, 0, 0), 
+                                        dim=volume.shape,
+                                        spacing=(1.0, 1.0, 1.0))
 
     result = vtk_conversion.vtk_to_numpy_image(result)
     return result
@@ -48,19 +54,17 @@ def smooth_nii(nii_file,
     """
     img = sitk.ReadImage(str(nii_file))
     volume = sitk.GetArrayFromImage(img)
-    volume = volume.transpose([2, 1, 0])
-
+   
     result = smooth_img(volume,
                         smooth_filter='sinc',
                         smooth_iter=40,
                         relaxation=0.2)
-    
-    img_result = sitk.GetImageFromArray(result.transpose([2, 1, 0]))
+
+    img_result = sitk.GetImageFromArray(result)
     img_result.SetDirection(img.GetDirection())
     img_result.SetOrigin(img.GetOrigin())
     img_result.SetSpacing(img.GetSpacing())
-    
-    print("Writing output to :", out_file)
+
     sitk.WriteImage(img_result, str(out_file))
 
 
