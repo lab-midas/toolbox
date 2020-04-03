@@ -143,9 +143,9 @@ def process_brain_t1(input_file,
                      output_dir,
                      reference_file='/mnt/qdata/tools/fsl/ref/MNI152_T1_1mm.nii.gz',
                      robex_dir='/mnt/qdata/tools/robex',
-                     split=-1,
+                     split=0,
                      verbose=False):
-    
+    print(split)    
     input_file = Path(input_file)
     reference_file = Path(reference_file)
     output_dir = Path(output_dir)
@@ -240,7 +240,7 @@ def main():
     if args.robex:
         robex_dir = args.robex
 
-    split = -1
+    split = 0
     if args.split:
         split = args.split
 

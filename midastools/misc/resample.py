@@ -140,7 +140,7 @@ def main():
     args = parser.parse_args()
 
     nii_file = Path(args.nii_input)
-    ref_file = Path(args.Reference)
+    ref_file = args.Reference
     out_file = args.Output
     if not out_file:
         praefix = 'rs_'
