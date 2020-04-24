@@ -1,12 +1,11 @@
-import SimpleITK as sitk
-#import matplotlib.pyplot as plt
+import numpy as np
 import pydicom
 import sys
 import argparse
+import SimpleITK as sitk
 
 def conv_time(time_str):
     return (float(time_str[:2]) * 3600 + float(time_str[2:4]) * 60 + float(time_str[4:13]))
-
 
 class Pet:
 
@@ -101,62 +100,31 @@ class Pet:
             self.load_nii(nii_path, dcm_header_path)
 
 
-# Debugging
-
-
-def test_load_dcmdir():
-    dcm_dir = 'data'
-
-    pet_obj = Pet(dcm_dir)
-    image_pet_suv = pet_obj.calc_suv_image()
-
-    plt.imshow(sitk.GetArrayFromImage(image_pet_suv)[150, :, :], cmap='inferno')
-    plt.show()
-
-
-def test_load_nii():
-    nii_path = '/media/dataheppt1/raheppt1/TUE0001LYMPH/AYDEMIR_AYSE_0005628926/20170116095458_20170116/04_PETCT_GK_pv_TH_Insp/GK_p_v_1_WF_s006.nii'
-    dcm_header = '/media/dataheppt1/raheppt1/TUE0001LYMPH/AYDEMIR_AYSE_0005628926/20170116095458_20170116/DICOM/DICOMHEADER_s007.dcm'
-
-    pet_obj = Pet(nii_path=nii_path, dcm_header_path=dcm_header)
-    image_pet_suv = pet_obj.calc_suv_image()
-
-    plt.imshow(sitk.GetArrayFromImage(image_pet_suv)[200, :, :], cmap='inferno')
-    plt.show()
-
-
 def main():
     print('Convert PET corr. to PET SUV')
     parser = argparse.ArgumentParser()
-    parser.add_argument('--nii', help='pet image .nii file')
-    parser.add_argument('--header', help='single .dcm file with pet dicom tags')
-    parser.add_argument('--out', help='.nii output file')
-    args = parser.parse_args()
-    nii_file = vars(args)['nii']
-    dcm_header = vars(args)['header']
-    out_file = vars(args)['out']
+    parser.add_argument('--nii', help='pet image .nii file', required=True)
+    parser.add_argument('--header', help='single .dcm file with pet dicom tags', required=True)
+    parser.add_argument('--out', help='.nii output file', required=True)
+    parser.add_argument('--dtype', help='output file dtype', default='float32', choices=['float32', 'float16'])
 
-    file = open('/home/raheppt1/log.txt', 'w')
-    file.write(nii_file)
-    file.write(dcm_header)
-    file.write(out_file)
-    file.close()
+    args = parser.parse_args()
+    nii_file = args.nii
+    dcm_header = args.header
+    out_file = args.out
+
+    if args.dtype == 'float32':
+       args.dtype = np.float32
+    elif args.dtype == 'float16':
+       args.dtype = np.float16
 
     if nii_file and dcm_header and out_file:
-        reader = sitk.ImageFileReader()
-        reader.SetImageIO('NiftiImageIO')
-        reader.SetFileName(nii_file)
-        img = reader.Execute()
+        img = sitk.ReadImage(nii_file)
         print('size', img.GetSize())
-
         print(nii_file, dcm_header, out_file)
         pet_obj = Pet(nii_path=nii_file, dcm_header_path=dcm_header)
-        image_pet_suv = pet_obj.calc_suv_image()
-        writer = sitk.ImageFileWriter()
-        writer.SetFileName(out_file)
-        writer.Execute(image_pet_suv)
-
-
+        image_pet_suv = pet_obj.calc_suv_image().astype(args.dtype)
+        sitk.WriteImage(image_pet_suv, out_file)
 
 if __name__ == '__main__':
     main()
