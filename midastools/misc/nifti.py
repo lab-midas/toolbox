@@ -4,6 +4,7 @@ import SimpleITK as sitk
 
 # https://niftynet.readthedocs.io/en/v0.2.2/_modules/niftynet/io/simple_itk_as_nibabel.html
 
+
 class SimpleITKAsNibabel(nibabel.Nifti1Image):
     """
     Minimal interface to use a SimpleITK image as if it were
@@ -39,10 +40,10 @@ class SimpleITKAsNibabelHeader(nibabel.spatialimages.SpatialHeader):
 def make_affine(simpleITKImage):
     # get affine transform in LPS
     c = [simpleITKImage.TransformContinuousIndexToPhysicalPoint(p)
-        for p in ((1, 0, 0),
-                (0, 1, 0),
-                (0, 0, 1),
-                (0, 0, 0))]
+         for p in ((1, 0, 0),
+                   (0, 1, 0),
+                   (0, 0, 1),
+                   (0, 0, 0))]
     c = np.array(c)
     affine = np.concatenate([
         np.concatenate([c[0:3] - c[3:], c[3:]], axis=0),

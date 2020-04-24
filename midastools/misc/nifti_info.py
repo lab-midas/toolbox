@@ -1,7 +1,9 @@
 import SimpleITK as sitk
 import argparse
 from pathlib import Path
+import nibabel as nib
 
+# todo orientation
 def main():
     """ Shows basic information for nifti files.
     (Size, Spacing, Origin, Direction)
@@ -23,29 +25,26 @@ def main():
     reader.SetImageIO('NiftiImageIO')
     reader.SetFileName(str(nii_file))
     img = reader.Execute()
-
+    affine = nib.load(nii_file).affine
+    
     sep = ''
+
     if args.multiline:
         sep = '\n'
 
     if args.short:
-        template = ' Size: {}{} Spacing: {}'
+        template = ' Size: {}{} Spacing: {}{} Orientation: {}'
         print(template.format(img.GetSize(), sep,
-                              img.GetSpacing()))
+                              img.GetSpacing(), sep,
+                              nib.aff2axcodes(affine)))
 
     else:
-        template = ' Size: {}{} Spacing: {}{} Origin: {}{} Direction: {}'
+        template = ' Size: {}{} Spacing: {}{} Origin: {}{} Direction: {}{} Orientation: {}'
         print(template.format(img.GetSize(), sep,
                               img.GetSpacing(), sep,
                               img.GetOrigin(), sep,
-                              img.GetDirection()))
-
-
-
-    # todo show metadata
-    #print('MetaData:  '
-    #for key in img.GetMetaDataKeys():
-    #    print(key, ': ', img.GetMetaData(key))
+                              img.GetDirection(), sep,
+                              nib.aff2axcodes(affine)))
 
 if __name__ == '__main__':
     main()
