@@ -17,7 +17,8 @@ def reorient_nii_file(input_file,
     nib.save(new_img, str(output_file))
 
 def reorient_nii(img,
-                 target_orientation = ('L', 'A', 'S')):
+                 target_orientation=('L', 'A', 'S'),
+                 verbose=False):
     new_ornt = axcodes2ornt(target_orientation)
     vox_array = img.get_fdata()
     affine = img.affine
@@ -27,7 +28,8 @@ def reorient_nii(img,
     new_vox_array = apply_orientation(vox_array, ornt_trans)
     aff_trans = inv_ornt_aff(ornt_trans, orig_shape)
     new_affine = np.dot(affine, aff_trans)
-    print(f'{aff2axcodes(affine)} -> {aff2axcodes(new_affine)}')
+    if verbose:
+        print(f'{aff2axcodes(affine)} -> {aff2axcodes(new_affine)}')
     new_img = nib.Nifti1Image(new_vox_array, new_affine, img.header)
     return new_img
 
