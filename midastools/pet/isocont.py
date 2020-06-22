@@ -8,20 +8,21 @@ import skimage.measure
 from pathlib import Path
 
 
-def isoncont(img, mask,
-             b_out_labeled_mask=False,
-             b_class_components=True,
-             b_use_percentile_threshold=True,
-             percentile_threshold=25,
-             maximum_threshold=10,
-             verbose=True):
+def isocont(img_arr,
+            mask_arr,
+            b_out_labeled_mask=False,
+            b_class_components=True,
+            b_use_percentile_threshold=True,
+            percentile_threshold=25,
+            maximum_threshold=10,
+            verbose=True):
     """
     Computes a mask based on percentile/relative maximum SUV value thresholds inside all
     connected components of the original mask.
 
     Args:
-        img: Sitk PET-SUV image.
-        mask: Tumor mask.
+        img_arr: array of a PET-SUV image.
+        mask_arr: array of a tumor mask.
         b_out_labeled_mask: Output labeled component mask, no thresholding.
         b_class_components: Detected connected components and use component based threshold.
         b_use_percentile_threshold: Use percentile based thresholds (otherwise relative maximum value thresholds
@@ -30,18 +31,24 @@ def isoncont(img, mask,
         maximum_threshold: Set relative maximum (SUV value) threshold.
         verbose:
 
-    Returns: Sitk image with new mask.
+    Returns: array of the new mask.
 
     """
     maximum_threshold = float(maximum_threshold)
 
     # Get numpy array from sitk objects.
-    amask = sitk.GetArrayFromImage(mask)
-    aimg = sitk.GetArrayFromImage(img)
+    # amask = sitk.GetArrayFromImage(mask)
+    # animg = sitk.GetArrayFromImage(img)
+
+    amask = mask_arr
+    animg = img_arr
 
     # Classify connected image components
     if b_class_components:
-        amask_comp, num_comp = skimage.measure.label(amask, neighbors=None, background=None, return_num=True,
+        amask_comp, num_comp = skimage.measure.label(amask,
+                                                     neighbors=None,
+                                                     background=None,
+                                                     return_num=True,
                                                      connectivity=None)
     else:
         amask_comp = amask
@@ -58,9 +65,9 @@ def isoncont(img, mask,
         if verbose:
             print(f'Component {comp}')
 
-        sel_comp = (amask_comp == (comp +1))
+        sel_comp = (amask_comp == (comp + 1))
         # Get SUV values inside the selected component.
-        suv_values = aimg[sel_comp]
+        suv_values = animg[sel_comp]
 
         suv_max = np.max(suv_values)
 
@@ -78,26 +85,12 @@ def isoncont(img, mask,
         if verbose:
             print(f'Used threshold: {th}')
 
-        amask_th = amask_th + \
-                   np.logical_and(np.greater_equal(aimg, th), sel_comp)
+        amask_th = amask_th + np.logical_and(np.greater_equal(animg, th), sel_comp)
 
-    # Create mask_out sitk img. If out_labeled_mask, the output image just
-    # contains the labeled connected component mask.
-    mask_out = sitk.GetImageFromArray(amask_th.astype(np.uint8))
-    if b_out_labeled_mask:
-        mask_out = sitk.GetImageFromArray(amask_comp.astype(np.uint8))
-
-    # Copy MetaData from original mask.
-    mask_out.SetDirection(mask.GetDirection())
-    mask_out.SetOrigin(mask.GetOrigin())
-    mask_out.SetSpacing(mask.GetSpacing())
-
-    return mask_out
-
+    return amask_th
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--pet',  help='pet image .nii file', required=True)
     parser.add_argument('-m', '--mask', help='mask .nii file', required=True)
@@ -145,13 +138,25 @@ def main():
     b_class_components = not args.NoComponents
     b_out_labeled_mask = args.OutputCompLabels
 
-    mask_out = isoncont(img, mask,
-                        b_out_labeled_mask=b_out_labeled_mask,
-                        b_class_components=b_class_components,
-                        b_use_percentile_threshold=b_use_percentile_threshold,
-                        percentile_threshold=percentile_threshold,
-                        maximum_threshold=maximum_threshold,
-                        verbose=verbose)
+    amask_th = isocont(img,
+                       mask,
+                       b_out_labeled_mask=b_out_labeled_mask,
+                       b_class_components=b_class_components,
+                       b_use_percentile_threshold=b_use_percentile_threshold,
+                       percentile_threshold=percentile_threshold,
+                       maximum_threshold=maximum_threshold,
+                       verbose=verbose)
+
+    # Create mask_out sitk img. If out_labeled_mask, the output image just
+    # contains the labeled connected component mask.
+    mask_out = sitk.GetImageFromArray(amask_th.astype(np.uint8))
+    if b_out_labeled_mask:
+        mask_out = sitk.GetImageFromArray(amask_comp.astype(np.uint8))
+
+    # Copy MetaData from original mask.
+    mask_out.SetDirection(mask.GetDirection())
+    mask_out.SetOrigin(mask.GetOrigin())
+    mask_out.SetSpacing(mask.GetSpacing())
 
     writer = sitk.ImageFileWriter()
     writer.SetFileName(str(path_mask_out))
