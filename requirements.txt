@@ -75,7 +75,7 @@ pycodestyle==2.5.0
 pydicom==1.4.2
 pydot==1.4.1
 pydotplus==2.0.2
-Pygments==2.6.1
+Pygments==2.7.4
 pylint==2.4.4
 pyparsing==2.4.6
 pyrsistent==0.15.7
